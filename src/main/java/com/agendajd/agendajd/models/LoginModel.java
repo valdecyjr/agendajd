@@ -3,6 +3,7 @@ package com.agendajd.agendajd.models;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GenerationType;
@@ -14,7 +15,7 @@ import lombok.Data;
 
 @Data
 @Entity
-public class LoginModel {
+public class LoginModel{
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

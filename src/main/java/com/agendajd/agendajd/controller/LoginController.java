@@ -1,16 +1,20 @@
 package com.agendajd.agendajd.controller;
 
 import com.agendajd.agendajd.dtos.CadastroDto;
+import com.agendajd.agendajd.dtos.LoginDto;
 import com.agendajd.agendajd.models.LoginModel;
-import com.agendajd.agendajd.models.LoginValidation;
 import com.agendajd.agendajd.models.UserModel;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,17 +26,19 @@ import com.agendajd.agendajd.services.UserService;
 
 import jakarta.validation.Valid;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/login")
 public class LoginController {
     
     final UserService userService;
     final LoginService loginService;
+    final PasswordEncoder encoder;
 
-    public LoginController(UserService userService, LoginService loginService){
+    public LoginController(UserService userService, LoginService loginService, PasswordEncoder encoder){
         this.userService = userService;
         this.loginService = loginService;
+        this.encoder = encoder;
     }
 
     @PostMapping("/cadastro")
@@ -52,7 +58,7 @@ public class LoginController {
         userService.save(userModel);
         var userOptional = userService.findByUsername(cadastro.getUsername());
         loginModel.setUser(userOptional.get());
-        loginModel.setPassword(cadastro.getPassword());
+        loginModel.setPassword(encoder.encode(cadastro.getPassword()));
         loginModel.setRegistrationDate(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
         loginService.save(loginModel);
 
@@ -60,16 +66,14 @@ public class LoginController {
     }
 
     @PostMapping("/loginvalidation")
-    public ResponseEntity<Object> loginValidation(@RequestBody LoginValidation user){
-
-        var loginOptional = loginService.findByUsername(user.getUsername());
-
-        if (!loginOptional.isPresent()) loginOptional = loginService.findByEmail(user.getUsername());
-        if (!loginOptional.isPresent()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username não cadastrado");
+    public ResponseEntity<Object> loginValidation(@RequestBody LoginDto user){
+        Optional<LoginModel> loginOptional = loginService.findLogin(user.getUsername());
+        System.out.println(loginOptional);
+        if (loginOptional.isEmpty()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username não cadastrado");
 
         var loginModel = loginOptional.get();
 
-        if (loginModel.getPassword().equals(user.getPassword())){
+        if (encoder.matches(user.getPassword(), loginModel.getPassword())){
             return ResponseEntity.status(HttpStatus.OK).body(loginModel.getUser());
         }
         else{

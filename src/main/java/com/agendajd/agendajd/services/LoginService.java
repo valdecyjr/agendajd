@@ -3,6 +3,7 @@ package com.agendajd.agendajd.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 import org.springframework.stereotype.Service;
 
 import com.agendajd.agendajd.models.LoginModel;
@@ -28,27 +29,24 @@ public class LoginService {
         return loginRepository.findAll();
     }
 
-    public Optional<LoginModel> findByUsername(String username){
-        var userOptional = userService.findByUsername(username);
+    public Optional<LoginModel> findLogin(String username){
+        Optional<UserModel> userOptional = userService.findByUsername(username);
+        System.out.println(userOptional);
         if (userOptional.isPresent()){
-            UserModel userModel = userOptional.get();
+            var userModel = userOptional.get();
             System.out.println(userModel);
             return loginRepository.findByUserId(userModel.getId());
-        }else{
-            Optional<LoginModel> loginModel = Optional.empty();
-            return loginModel;
         }
-    }
-
-    public Optional<LoginModel> findByEmail(String email){
-        var userOptional = userService.findByEmail(email);
-        if (userOptional.isPresent()){
-            UserModel userModel = userOptional.get();
-            System.out.println(userModel);
-            return loginRepository.findByUserId(userModel.getId());
-        }else{
-            Optional<LoginModel> loginModel = Optional.empty();
-            return loginModel;
+        else{
+            userOptional = userService.findByEmail(username);
+            if (userOptional.isPresent()){
+                var userModel = userOptional.get();
+                return loginRepository.findByUserId(userModel.getId());
+            }
+            else{
+                Optional<LoginModel> loginModel = Optional.empty();
+                return loginModel;
+            }
         }
     }
     

@@ -10,15 +10,15 @@ import lombok.Data;
 @Data
 public class CadastroDto {
     @NotBlank
-    @Size(max = 20, min = 4)
+    @Size(max = 20)
     private String username;
 
     @NotBlank
-    @Size(max = 100, min = 4)
+    @Size(max = 100)
     private String Fullname;
 
     @NotBlank
-    @Size(min = 6, max = 100)
+    @Size(max = 100)
     private String password;
 
     @NotBlank
